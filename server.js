@@ -2,48 +2,75 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import sql from "./db.js";
-
-dotenv.config();
+import fetch from "node-fetch"; // 👈 asegúrate de tenerlo instalado
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// 🚀 Ruta: obtener videos
-app.get("/api/videos", async (req, res) => {
-  try {
-    const videos = await sql`SELECT * FROM videos ORDER BY id DESC`;
-    res.json(videos);
-  } catch (err) {
-    console.error("❌ Error en /api/videos:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
+dotenv.config();
 
-// 🚀 Ruta: agregar video
+
+// 🔹 función auxiliar para obtener título del video
+async function obtenerTitulo(url) {
+  try {
+    // usamos el oEmbed de YouTube o Dailymotion
+    if (url.includes("youtube") || url.includes("youtu.be")) {
+      const id = url.split("v=")[1] || url.split("/").pop();
+      const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`;
+      const res = await fetch(oembedUrl);
+      const data = await res.json();
+      return data.title || "Video de YouTube";
+    } else if (url.includes("dailymotion")) {
+      const id = url.split("/video/")[1];
+      const oembedUrl = `https://www.dailymotion.com/services/oembed?url=https://www.dailymotion.com/video/${id}`;
+      const res = await fetch(oembedUrl);
+      const data = await res.json();
+      return data.title || "Video de Dailymotion";
+    }
+    return "Video";
+  } catch (err) {
+    console.error("❌ Error obteniendo título:", err);
+    return "Video sin título";
+  }
+}
+
+// 🔹 Agregar video
 app.post("/api/videos", async (req, res) => {
   try {
     const { url } = req.body;
-    let embedUrl = url;
+    const title = await obtenerTitulo(url);
 
-    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    let embedUrl = url;
+    if (url.includes("youtube") || url.includes("youtu.be")) {
       const id = url.split("v=")[1] || url.split("/").pop();
       embedUrl = `https://www.youtube.com/embed/${id}`;
-    } else if (url.includes("dailymotion.com")) {
+    } else if (url.includes("dailymotion")) {
       const id = url.split("/video/")[1];
       embedUrl = `https://www.dailymotion.com/embed/video/${id}`;
     }
 
     const [video] = await sql`
-      INSERT INTO videos (url, platform, embed_url)
-      VALUES (${url}, 'auto', ${embedUrl})
+      INSERT INTO videos (url, title, platform, embed_url)
+      VALUES (${url}, ${title}, 'auto', ${embedUrl})
       RETURNING *;
     `;
 
     res.json(video);
   } catch (err) {
-    console.error("❌ Error en /api/videos (POST):", err);
+    console.error("❌ Error al agregar video:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 🔹 Obtener todos los videos
+app.get("/api/videos", async (req, res) => {
+  try {
+    const videos = await sql`SELECT * FROM videos ORDER BY id DESC`;
+    res.json(videos);
+  } catch (err) {
+    console.error("❌ Error al obtener videos:", err);
     res.status(500).json({ error: err.message });
   }
 });
