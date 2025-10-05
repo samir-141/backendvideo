@@ -112,7 +112,21 @@ app.post("/api/visita", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.post("/api/login", async (req, res) => {
+  const { user, pass } = req.body;
 
+  // ✅ Usuario administrador “en duro”
+  const ADMIN_USER = process.env.ADMIN_USER || "admin";
+  const ADMIN_PASS = process.env.ADMIN_PASS || "1234";
+
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+    // Puedes generar un token falso o JWT real, según tu necesidad
+    const fakeToken = "token_" + Math.random().toString(36).substring(2);
+    res.json({ token: fakeToken });
+  } else {
+    res.status(401).json({ error: "Credenciales inválidas" });
+  }
+});
 app.listen(PORT, () => {
   console.log(`🚀 Backend corriendo en http://localhost:${PORT}`);
 });
