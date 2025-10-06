@@ -1,10 +1,12 @@
+// db.js
 import postgres from "postgres";
 import dotenv from "dotenv";
 
 dotenv.config();
 
+// Conexión con Supabase (usa la URL del .env)
 const sql = postgres(process.env.DATABASE_URL, {
-  ssl: "require"
+  ssl: { rejectUnauthorized: false }, // importante para AWS/Supabase
 });
-console.log(process.env.DATABASE_URL)
+
 export default sql;
