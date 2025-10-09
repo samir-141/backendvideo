@@ -78,7 +78,7 @@ export async function agregarVideo(req, res) {
     console.error("❌ Error al agregar video:", err); 
     
     // No enviar el error completo al cliente, solo un mensaje genérico
-    res.status(500).json({ error: "Error interno del servidor al procesar la solicitud." });
+    res.status(500).json({ error: "Error interno del servidor al procesar la solicitud. ", err });
   }
 
   // IMPORTANTE: Se ha eliminado el código inalcanzable (la segunda consulta INSERT)
