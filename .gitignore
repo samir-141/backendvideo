@@ -3,7 +3,7 @@ node_modules/
 
 # Archivos sensibles
 .env
-
+.zip
 # Base de datos SQLite
 db.sqlite
 

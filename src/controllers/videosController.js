@@ -36,19 +36,21 @@ export async function agregarVideo(req, res) {
   try {
     const { url } = req.body;
     const title = await obtenerTitulo(url);
-    
+    const plataforma = '';
         let embedUrl = url;
         if (url.includes("youtube") || url.includes("youtu.be")) {
           const id = url.split("v=")[1] || url.split("/").pop();
           embedUrl = `https://www.youtube.com/embed/${id}`;
+          plataforma = "youtube"
         } else if (url.includes("dailymotion")) {
           const id = url.split("/video/")[1];
           embedUrl = `https://www.dailymotion.com/embed/video/${id}`;
+          plataforma = "dailymotion"
         }
     
         const [video] = await sql`
           INSERT INTO videos (url, title, platform, embed_url)
-          VALUES (${url}, ${title}, 'auto', ${embedUrl})
+          VALUES (${url}, ${title}, ${plataforma}, ${embedUrl})
           RETURNING *;
         `;
     
@@ -61,7 +63,7 @@ export async function agregarVideo(req, res) {
       return res.status(400).json({ error: "Faltan datos obligatorios" });
     }
     await sql`
-      INSERT INTO videos (titulo, url, fecha_subida)
+      INSERT INTO videos (title, url, fecha_subida)
       VALUES (${titulo}, ${url}, NOW());
     `;
     res.json({ success: true, message: "Video agregado correctamente" });
