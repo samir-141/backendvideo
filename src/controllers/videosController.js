@@ -97,8 +97,8 @@ export async function eliminarVideo(req, res) {
 }
 export async function enviarvistas(req, res){
     try {
-    const { video_id } = req.body;
-    await sql`INSERT INTO visitas (video_id, fecha) VALUES (${video_id}, NOW());`;
+    const { NumVistas } = req.body;
+    await sql`UPDATE visitas set contador = ${NumVistas};`;
     res.json({ success: true });
   } catch (err) {
     console.error("❌ Error al registrar visita:", err);
@@ -107,7 +107,7 @@ export async function enviarvistas(req, res){
 }
 export async function optenervistas(req, res){
     try {
-    const result = await sql`SELECT * FROM visitas ORDER BY id DESC;`;
+    const result = await sql`SELECT * FROM visitas;`;
     res.json(result);
   } catch (err) {
     console.error("❌ Error al registrar visita:", err);
